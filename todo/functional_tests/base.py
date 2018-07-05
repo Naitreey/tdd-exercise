@@ -6,14 +6,12 @@ from unittest import skip
 
 import numpy as np
 
-from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
-
-_BROWSER = None
+from todo.utils.test import get_browser_driver
 
 
 class BaseBrowserTest(StaticLiveServerTestCase):
@@ -23,16 +21,7 @@ class BaseBrowserTest(StaticLiveServerTestCase):
 
     @property
     def browser(self):
-        global _BROWSER
-        if _BROWSER is None:
-            _BROWSER = webdriver.Chrome()
-        return _BROWSER
-
-    #def setUp(self):
-    #    self.browser = webdriver.Chrome()
-
-    #def tearDown(self):
-    #    self.browser.quit()
+        return get_browser_driver()
 
     def check_and_input(self, selector, content, *, placeholder=None):
         elem = self.wait_for(selector)

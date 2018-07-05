@@ -123,3 +123,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+# Testing
+
+TEST_RUNNER = "todo.utils.test.BrowserRunner"
+TEST_BROWSER_DRIVER = "selenium.webdriver.Chrome"
