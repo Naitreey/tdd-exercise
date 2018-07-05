@@ -1,0 +1,117 @@
+from datetime import timedelta
+
+from django.test import TestCase
+from django.urls import resolve
+from django.http.request import HttpRequest
+from django.template import loader
+from django.utils import timezone
+
+from .. import views, models
+
+# Create your tests here.
+
+
+class HomePageTest(TestCase):
+
+    def test_resolve(self):
+        homepage_view = resolve("/").func
+        self.assertEqual(homepage_view, views.home)
+
+    def test_can_get_homepage(self):
+        response = self.client.get("/")
+        self.assertTemplateUsed(response, "todo/index.html")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("form", response.context)
+
+    def test_get_not_save_item(self):
+        self.client.get("/")
+        self.assertEqual(models.Item.objects.count(), 0)
+
+
+class ListViewTest(TestCase):
+
+    def test_list_template_used(self):
+        todo_list = models.List.objects.create()
+        response = self.client.get(f"/lists/{todo_list.pk}/")
+        self.assertTemplateUsed(response, "todo/list.html")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("items", response.context)
+        self.assertIn("form", response.context)
+
+    def test_list_only_display_belonging_items(self):
+        todo_list1 = models.List.objects.create()
+        todo_list2 = models.List.objects.create()
+        models.Item.objects.bulk_create([
+            models.Item(content="item 1", list=todo_list1, create_time=timezone.now()),
+            models.Item(content="item 2", list=todo_list1, create_time=timezone.now()+timedelta(seconds=1)),
+        ])
+        models.Item.objects.bulk_create([
+            models.Item(content="item 3", list=todo_list2),
+            models.Item(content="item 4", list=todo_list2),
+        ])
+        response = self.client.get(f"/lists/{todo_list1.pk}/")
+        self.assertContains(response, "item 1")
+        self.assertContains(response, "item 2")
+        self.assertNotContains(response, "item 3")
+        self.assertNotContains(response, "item 4")
+
+    def test_can_add_item_to_list(self):
+        todo_list = models.List.objects.create()
+        list_url = f"/lists/{todo_list.pk}/"
+        text = "something"
+        response = self.client.post(list_url, data={"content": "something"})
+        self.assertRedirects(response, list_url)
+        self.assertEqual(todo_list.entries.count(), 1)
+        response = self.client.get(list_url)
+        self.assertContains(response, text)
+        self.assertIn("items", response.context)
+        self.assertIn("form", response.context)
+
+
+class InitialListTest(TestCase):
+
+    def test_has_initial_list(self):
+        self.assertEqual(models.List.objects.count(), 1)
+
+
+class NewListTest(TestCase):
+
+    new_list_url = "/lists/"
+
+    def test_can_post_new_item(self):
+        response = self.client.post(
+            self.new_list_url,
+            data={"content": "new item"}
+        )
+        list = models.List.objects.last()
+        self.assertRedirects(response, f"/lists/{list.pk}/")
+
+    def test_new_lists_have_different_urls(self):
+        response1 = self.client.post(
+            self.new_list_url,
+            data={"content": "new item"}
+        )
+        response2 = self.client.post(
+            self.new_list_url,
+            data={"content": "new item"}
+        )
+        self.assertNotEqual(response1['Location'], response2['Location'])
+
+    def test_can_save_new_item(self):
+        text = "new item"
+        response = self.client.post(
+            self.new_list_url,
+            data={"content": text}
+        )
+        self.assertEqual(models.Item.objects.count(), 1)
+        self.assertEqual(models.Item.objects.first().content, text)
+
+    def test_can_not_post_empty_item(self):
+        response = self.client.post(
+            self.new_list_url,
+            data={"content": ""}
+        )
+        self.assertEqual(models.Item.objects.count(), 0)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "To-Do entry can not be empty.")
+        self.assertIn("form", response.context)

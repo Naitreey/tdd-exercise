@@ -1,0 +1,18 @@
+{% extends "todo/base.html" %}
+
+{% block title%}Your To-Do List{% endblock title%}
+
+{% block todolist %}
+<div class="row justify-content-center">
+    <div class="col-sm-6">
+        <ul class="list-group list-group-flush" id="todo-list">
+            {% for item in items %}
+            <li class="list-group-item">{{ forloop.counter }}. {{ item.content }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock todolist %}
+<!-- 
+vim:ft=htmldjango
+-->

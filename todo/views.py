@@ -1,0 +1,48 @@
+from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
+
+from . import models
+from . import forms
+
+# Create your views here.
+
+
+def home(request):
+    return render(request, "todo/index.html", {"form": forms.ItemForm()})
+
+
+def view_list(request, pk):
+    list = get_object_or_404(models.List, pk=pk)
+    if request.method == "POST":
+        form = forms.ItemForm(data=request.POST)
+        if form.errors:
+            return render(
+                request, "todo/list.html",
+                {
+                    "items": list.entries.order_by("create_time"),
+                    "form": form,
+                }
+            )
+        else:
+            form.save(list=list)
+            return redirect(list)
+    else:
+        return render(
+            request,
+            "todo/list.html",
+            context={
+                "items": list.entries.order_by("create_time"),
+                "form": forms.ItemForm(),
+            },
+        )
+
+
+def create_list(request):
+    if request.method == "POST":
+        form = forms.ItemForm(data=request.POST)
+        if form.errors:
+            return render(request, "todo/index.html", {"form": form})
+        else:
+            list = models.List.objects.create()
+            form.save(list=list)
+            return redirect(list)
