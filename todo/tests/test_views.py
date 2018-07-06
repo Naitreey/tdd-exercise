@@ -72,13 +72,26 @@ class ListViewTest(TestCase):
 
     def test_can_add_item_to_list(self):
         todo_list = models.List.objects.create()
-        list_url = f"/lists/{todo_list.pk}/"
+        list_url = todo_list.get_absolute_url()
         text = "something"
         response = self.client.post(list_url, data={"content": "something"})
         self.assertRedirects(response, list_url)
         self.assertEqual(todo_list.entries.count(), 1)
         response = self.client.get(list_url)
         self.assertContains(response, text)
+
+    def test_can_not_post_same_item_to_list(self):
+        todo_list = models.List.objects.create()
+        list_url = todo_list.get_absolute_url()
+        text = "something"
+        response = self.client.post(list_url, data={"content": "something"})
+        response = self.client.post(list_url, data={"content": "something"})
+        self.assertTemplateUsed(response, "todo/list.html")
+        self.assertContains(
+            response,
+            f'"{text}" already exists, please enter something else.',
+        )
+        self.assertEqual(todo_list.entries.count(), 1)
 
 
 class InitialListTest(TestCase):
