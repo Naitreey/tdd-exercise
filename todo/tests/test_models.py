@@ -34,7 +34,6 @@ class ListAndItemModelTest(TestCase):
         )
         self.assertEqual(todo_list.entries.count(), 2)
 
-
     def test_item_can_not_be_empty(self):
         todo_list = models.List.objects.create()
         with self.assertRaises(

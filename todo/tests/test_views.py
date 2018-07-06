@@ -6,7 +6,7 @@ from django.http.request import HttpRequest
 from django.template import loader
 from django.utils import timezone
 
-from .. import views, models
+from .. import views, models, forms
 
 # Create your tests here.
 
@@ -21,7 +21,10 @@ class HomePageTest(TestCase):
         response = self.client.get("/")
         self.assertTemplateUsed(response, "todo/index.html")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("form", response.context)
+
+    def test_homepage_has_form(self):
+        response = self.client.get("/")
+        self.assertIsInstance(response.context['form'], forms.ItemForm)
 
     def test_get_not_save_item(self):
         self.client.get("/")
@@ -35,15 +38,27 @@ class ListViewTest(TestCase):
         response = self.client.get(f"/lists/{todo_list.pk}/")
         self.assertTemplateUsed(response, "todo/list.html")
         self.assertEqual(response.status_code, 200)
+
+    def test_list_page_context(self):
+        todo_list = models.List.objects.create()
+        response = self.client.get(f"/lists/{todo_list.pk}/")
         self.assertIn("items", response.context)
-        self.assertIn("form", response.context)
+        self.assertIsInstance(response.context['form'], forms.ItemForm)
 
     def test_list_only_display_belonging_items(self):
         todo_list1 = models.List.objects.create()
         todo_list2 = models.List.objects.create()
         models.Item.objects.bulk_create([
-            models.Item(content="item 1", list=todo_list1, create_time=timezone.now()),
-            models.Item(content="item 2", list=todo_list1, create_time=timezone.now()+timedelta(seconds=1)),
+            models.Item(
+                content="item 1", 
+                list=todo_list1, 
+                create_time=timezone.now()
+            ),
+            models.Item(
+                content="item 2", 
+                list=todo_list1, 
+                create_time=timezone.now()+timedelta(seconds=1)
+            ),
         ])
         models.Item.objects.bulk_create([
             models.Item(content="item 3", list=todo_list2),
@@ -64,8 +79,6 @@ class ListViewTest(TestCase):
         self.assertEqual(todo_list.entries.count(), 1)
         response = self.client.get(list_url)
         self.assertContains(response, text)
-        self.assertIn("items", response.context)
-        self.assertIn("form", response.context)
 
 
 class InitialListTest(TestCase):
@@ -112,6 +125,19 @@ class NewListTest(TestCase):
             data={"content": ""}
         )
         self.assertEqual(models.Item.objects.count(), 0)
+
+    def test_post_empty_item_returns_homepage(self):
+        response = self.client.post(
+            self.new_list_url,
+            data={"content": ""}
+        )
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "todo/index.html")
+        self.assertIsInstance(response.context['form'], forms.ItemForm)
+
+    def test_post_empty_item_shows_invalidation(self):
+        response = self.client.post(
+            self.new_list_url,
+            data={"content": ""}
+        )
         self.assertContains(response, "To-Do entry can not be empty.")
-        self.assertIn("form", response.context)

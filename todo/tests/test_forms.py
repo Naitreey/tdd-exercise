@@ -22,3 +22,4 @@ class ItemFormTest(TestCase):
                 msg="An empty item is erroneously saved."
         ) as cm:
             form.save(list=list)
+        self.assertIn("To-Do entry can not be empty.", form.errors['content'])

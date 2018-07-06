@@ -60,9 +60,11 @@ class BaseBrowserTest(StaticLiveServerTestCase):
 
 class ToDoListTest(BaseBrowserTest):
 
+    input_selector = "#id_content"
+
     def input_new_todo_item(self, content):
         self.check_and_input(
-            "#id_content", content,
+            self.input_selector, content,
             placeholder="Enter a to-do item"
         )
 
@@ -74,11 +76,18 @@ class ToDoListTest(BaseBrowserTest):
 
     def check_inputbox_centered(self):
         size = self.browser.get_window_size()
-        input_box = self.wait_for("#id_content")
+        input_box = self.wait_for(self.input_selector)
         self.assertAlmostEqual(
             input_box.location['x'] + input_box.size['width']/2,
             size['width']/2,
             delta=50,
+        )
+
+    def check_input_error(self, err_msg):
+        error_elem = self.wait_for(f"{self.input_selector}-error")
+        self.assertIn(
+            err_msg, error_elem.text,
+            msg="The specified input error message is not shown.",
         )
 
 
@@ -107,7 +116,3 @@ class EmptyInputTestMixin:
         # he then input something as todo entry
         self.input_new_todo_item("something else")
         self.check_todo_list(["something", "something else"])
-
-    def check_input_error(self, err_msg):
-        error_elem = self.wait_for("#id_content-error")
-        self.assertIn(err_msg, error_elem.text)
