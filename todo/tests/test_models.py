@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS
 
 from .. import models
 
@@ -54,3 +55,24 @@ class ListAndItemModelTest(TestCase):
             todo_list.get_absolute_url(),
             f"/lists/{todo_list.pk}/"
         )
+
+    def test_can_not_add_same_item_to_a_list(self):
+        todo_list = models.List.objects.create()
+        text = "something"
+        item1 = models.Item(content=text, list=todo_list)
+        item1.save()
+        item2 = models.Item(content=text, list=todo_list)
+        with self.assertRaises(
+                ValidationError,
+                msg="Duplicated items shouldn't be added to a list."
+        ) as cm:
+            item2.full_clean()
+
+    def test_can_add_same_item_to_different_list(self):
+        text = "sef"
+        list1 = models.List.objects.create()
+        list2 = models.List.objects.create()
+        item1 = models.Item(content=text, list=list1)
+        item2 = models.Item(content=text, list=list2)
+        item1.full_clean() # should not raise
+        item2.full_clean() # should not raise

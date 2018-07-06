@@ -53,6 +53,7 @@ class Item(models.Model):
     class Meta:
         verbose_name = "List item"
         verbose_name_plural = f"{verbose_name}s"
+        unique_together = ("content", "list")
 
     def __str__(self):
         return f"{self.list} | {self.content} | {self.create_time}"
