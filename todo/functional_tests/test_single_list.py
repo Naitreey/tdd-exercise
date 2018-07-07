@@ -44,9 +44,9 @@ class SingleListTest(EmptyInputTestMixin, ToDoListTest):
         )
 
         # and it highlighted the duplicated item
-        entry = self.browser.get_element_by_css_selector("li.duplicate")
+        entry = self.browser.find_element_by_css_selector("li.duplicate")
         self.assertRegex(
-            entry.text, r"\d+\. {text}",
+            entry.text, rf"\d+\. {text}",
             msg='The highlighted item does not match "X. XXX" form.',
         )
 

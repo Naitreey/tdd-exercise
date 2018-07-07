@@ -63,6 +63,7 @@ class ExistingListItemFormTest(TestCase):
             'something else.',
             form.errors['content'],
         )
+        self.assertIsInstance(form.duplicate, models.Item)
 
     def test_can_not_save_empty_item(self):
         content = ""

@@ -39,17 +39,23 @@ class ExistingListItemForm(forms.ModelForm):
     def __init__(self, list, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.todolist = list
+        self.duplicate = None
 
     def clean_content(self):
         message = f'"%(content)s" already exists, please enter something else.'
         content = self.cleaned_data['content']
-        if self.todolist.entries.filter(content=content).exists():
+        try:
+            dup = self.todolist.entries.get(content=content)
+        except models.Item.DoesNotExist:
+            return content
+        else:
+            # mark duplicate item for external inspection
+            self.duplicate = dup
             raise ValidationError(
                 message=message, 
                 code="duplicate", 
                 params={"content": content}
             )
-        return content
 
     def save(self):
         instance = super().save(commit=False)
