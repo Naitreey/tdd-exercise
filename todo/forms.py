@@ -3,7 +3,7 @@ from django.forms import ModelForm
 from . import models
 
 
-class ItemForm(ModelForm):
+class NewListItemForm(ModelForm):
 
     def save(self, list):
         instance = super().save(commit=False)
