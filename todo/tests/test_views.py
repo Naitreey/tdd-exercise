@@ -44,7 +44,7 @@ class ListViewTest(TestCase):
         todo_list = models.List.objects.create()
         response = self.client.get(f"/lists/{todo_list.pk}/")
         self.assertIn("items", response.context)
-        self.assertIsInstance(response.context['form'], forms.NewListItemForm)
+        self.assertIsInstance(response.context['form'], forms.ExistingListItemForm)
 
     def test_list_only_display_belonging_items(self):
         todo_list1 = models.List.objects.create()
@@ -81,7 +81,6 @@ class ListViewTest(TestCase):
         response = self.client.get(list_url)
         self.assertContains(response, text)
 
-    @skip
     def test_can_not_post_same_item_to_list(self):
         todo_list = models.List.objects.create()
         list_url = todo_list.get_absolute_url()

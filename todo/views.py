@@ -14,7 +14,7 @@ def home(request):
 def view_list(request, pk):
     list = get_object_or_404(models.List, pk=pk)
     if request.method == "POST":
-        form = forms.NewListItemForm(data=request.POST)
+        form = forms.ExistingListItemForm(data=request.POST, list=list)
         if form.errors:
             return render(
                 request, "todo/list.html",
@@ -24,7 +24,7 @@ def view_list(request, pk):
                 }
             )
         else:
-            form.save(list=list)
+            form.save()
             return redirect(list)
     else:
         return render(
@@ -32,7 +32,7 @@ def view_list(request, pk):
             "todo/list.html",
             context={
                 "items": list.entries.order_by("create_time"),
-                "form": forms.NewListItemForm(),
+                "form": forms.ExistingListItemForm(list=list),
             },
         )
 
