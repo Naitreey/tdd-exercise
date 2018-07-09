@@ -33,6 +33,12 @@ class BaseBrowserTest(StaticLiveServerTestCase):
         elem.send_keys(content)
         elem.send_keys(Keys.ENTER)
 
+    check_and_submit = check_and_input
+
+    def check_and_input_text(self, selector, content):
+        elem = self.wait_for_elem(selector)
+        elem.send_keys(content)
+
     def check_list(self, selector, contents):
         elem = self.wait_for(selector)
         entries = elem.find_elements_by_tag_name("li")
@@ -61,12 +67,16 @@ class BaseBrowserTest(StaticLiveServerTestCase):
 class ToDoListTest(BaseBrowserTest):
 
     input_selector = "#id_content"
+    input_error_selector = f"{input_selector}-error"
 
     def input_new_todo_item(self, content):
         self.check_and_input(
             self.input_selector, content,
             placeholder="Enter a to-do item"
         )
+
+    def get_input_error_element(self):
+        return self.wait_for(self.input_error_selector)
 
     def check_todo_list(self, items):
         self.check_list(
@@ -84,7 +94,7 @@ class ToDoListTest(BaseBrowserTest):
         )
 
     def check_input_error(self, err_msg):
-        error_elem = self.wait_for(f"{self.input_selector}-error")
+        error_elem = self.get_input_error_element()
         self.assertIn(
             err_msg, error_elem.text,
             msg="The specified input error message is not shown.",

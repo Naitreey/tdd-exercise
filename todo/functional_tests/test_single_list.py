@@ -57,6 +57,29 @@ class SingleListTest(EmptyInputTestMixin, ToDoListTest):
         # and it succeeded
         self.check_todo_list(["sef", "seff", text])
 
+    def test_input_error_hide_on_input(self):
+        # Spock visited his list
+        self.get_list_page()
+
+        # he tried to enter the same entry as before
+        text = "sef"
+        self.input_new_todo_item(text)
+
+        # but the page tells him that's not possible
+        self.check_input_error(
+            f'"{text}" already exists, please enter something else.'
+        )
+        self.assertTrue(
+            self.get_input_error_element().is_displayed()
+        )
+
+        # he focused on input bar and start to try again,
+        # the input error disappeared
+        self.check_and_input_text(self.input_selector, "x")
+        self.assertFalse(
+            self.get_input_error_element().is_displayed()
+        )
+
     def get_list_page(self):
         self.browser.get(
             urljoin(self.live_server_url, f"lists/{self.todolist.pk}/")
