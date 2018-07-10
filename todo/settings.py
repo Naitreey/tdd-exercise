@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'todo',
     'debug_toolbar',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -103,6 +104,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# User authentication
+
+AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = [
+    "accounts.auth.backends.TokenBackend",
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

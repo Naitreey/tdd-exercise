@@ -24,6 +24,7 @@ urlpatterns = [
     path("lists/", views.create_list, name="lists"),
     path("lists/<int:pk>/", views.view_list, name="view-list"),
     path('admin/', admin.site.urls),
+    path("accounts/", include("accounts.urls")),
 ]
 
 if settings.DEBUG:
