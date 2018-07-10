@@ -2,6 +2,7 @@
 Base test cases.
 """
 import time
+import os
 from unittest import skip
 
 import numpy as np
@@ -58,8 +59,11 @@ class BaseBrowserTest(StaticLiveServerTestCase):
 
     def wait_for(self, selector):
         return self.wait_for_fn(
-            lambda: self.browser.find_element_by_css_selector(selector)
+            lambda: self.find_element(selector)
         )
+
+    def find_element(self, selector):
+        return self.browser.find_element_by_css_selector(selector)
 
     wait_for_elem = wait_for
 
