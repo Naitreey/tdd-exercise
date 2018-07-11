@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'todo',
+    'accounts',
     'debug_toolbar',
 ]
 
@@ -102,6 +103,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+# User authentication
+AUTH_USER_MODEL = "accounts.User"
 
 
 # Internationalization

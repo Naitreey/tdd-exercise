@@ -9,6 +9,7 @@ from django.template import loader
 from django.utils import timezone
 
 from .. import views, models, forms
+from accounts import forms as account_forms
 
 # Create your tests here.
 
