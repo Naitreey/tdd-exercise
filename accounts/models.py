@@ -38,7 +38,7 @@ class User(PermissionsMixin, AbstractBaseUser):
         unique=True,
         help_text="User's email address",
     )
-    password = None
+    password = ""
 
     class Meta:
         verbose_name = "User account"

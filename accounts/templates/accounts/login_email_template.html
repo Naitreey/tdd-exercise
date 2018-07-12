@@ -1,0 +1,11 @@
+<html>
+    <body>
+        <p>
+        Click the following url to log in to To-Do list site:
+        </p>
+        <p><a href="{% url 'accounts:login-confirm' uidb64=uidb64 token=token %}">Log in</a></p>
+    </body>
+</html>
+{% comment %}
+vim:ft=htmldjango
+{% endcomment %}

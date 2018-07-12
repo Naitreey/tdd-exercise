@@ -133,3 +133,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 TEST_RUNNER = "todo.utils.test.BrowserRunner"
 TEST_BROWSER_DRIVER = "selenium.webdriver.Chrome"
+
+# Email
+
+LOGIN_SENDER_EMAIL = "zhuyide@jiandan100.cn"
