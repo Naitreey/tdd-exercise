@@ -17,6 +17,42 @@
     <body>
         {% block body %}
         <div class="container">
+            {% for msg in messages %}
+            <div class="login-alert alert alert-success" role="alert">
+                {{ msg }}
+            </div>
+            {% endfor %}
+            {% block nav %}
+            <nav id="nav" class="navbar navbar-expand-lg navbar-light bg-light">
+                {% if not user.is_authenticated %}
+                <form id="login-form"
+                      class="form-inline ml-auto"
+                      action="{% url 'accounts:login' %}"
+                      method="POST"
+                      enctype="application/x-www-form-urlencoded"
+                      accept-charset="utf-8"
+                      novalidate>
+                    {% csrf_token %}
+                    <div class="invalid-feedback col d-flex">
+                        {{ loginform.email.errors|join:", " }}
+                    </div>
+                    <div class="input-group">
+                        <input id="{{ loginform.email.id_for_label }}"
+                               class="form-control mr-2 {% if loginform.email.errors %}is-invalid{% endif %}"
+                               name="{{ loginform.email.html_name }}"
+                               type="text"
+                               value="{{ loginform.email.value|default:"" }}"
+                               placeholder="{{ loginform.email.label }}"/>
+                    </div>
+                    <button type="submit" class="btn btn-outline-success">
+                        Log In
+                    </button>
+                </form>
+                {% else %}
+
+                {% endif %}
+            </nav>
+            {% endblock nav %}
             {% block input %}
             <div class="row justify-content-center">
                 <div class="col-sm-5 jumbotron">

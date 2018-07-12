@@ -1,3 +1,5 @@
+from urllib.parse import urlunsplit
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -7,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.utils.encoding import force_bytes
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 
 
 UserModel = get_user_model()
@@ -32,7 +35,8 @@ class LoginForm(forms.Form):
         else:
             return email
 
-    def save(self, subject_template_name="accounts/login_email_subject.txt",
+    def save(self, scheme, domain,
+             subject_template_name="accounts/login_email_subject.txt",
              email_template_name="accounts/login_email_template.html"):
         if self.errors:
             raise ValueError(
@@ -41,12 +45,18 @@ class LoginForm(forms.Form):
         sender = settings.LOGIN_SENDER_EMAIL
         email = self.cleaned_data['email']
         user = UserModel.objects.get_by_natural_key(email)
+        login_url = reverse(
+            "accounts:login-confirm",
+            kwargs={
+                "uidb64": urlsafe_base64_encode(force_bytes(user.pk)).decode(),
+                "token": default_token_generator.make_token(user),
+            }
+        )
         subject = loader.render_to_string(subject_template_name).strip()
         message = loader.render_to_string(
             email_template_name,
             context={
-                "uidb64": urlsafe_base64_encode(force_bytes(user.pk)).decode(),
-                "token": default_token_generator.make_token(user),
-            }
+                "login_url": urlunsplit((scheme, domain, login_url, "", ""))
+            },
         )
         mail.send_mail(subject, message, sender, [email])

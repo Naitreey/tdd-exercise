@@ -39,18 +39,18 @@ class LoginFormTest(TestCase):
         email = "abc"
         form = forms.LoginForm(data={"email": email})
         with self.assertRaises(ValueError):
-            form.save()
+            form.save("http", "localhost")
 
     def test_raise_error_if_unregistered(self):
         form = forms.LoginForm(data={"email": "a@b.c"})
         with self.assertRaises(ValueError):
-            form.save()
+            form.save("http", "localhost")
 
     @patch("django.core.mail.send_mail")
     def test_send_email_if_registered(self, send_mail):
         email = self.registered_email
         form = forms.LoginForm(data={"email": email})
-        form.save()
+        form.save("http", "localhost")
         (subject, message, from_email, recipient_list, *rest), kwargs = \
             send_mail.call_args
         self.assertTrue(send_mail.called)
@@ -60,7 +60,8 @@ class LoginFormTest(TestCase):
         )
         self.assertEqual(recipient_list[0], email)
         self.assertEqual(subject, "Your login url to To-Do List site")
-        self.assertRegex(
-            message,
+        self.assertInHTML(
             "Click the following url to log in to To-Do list site:",
+            message,
         )
+        self.assertRegex(message, r"http://.*/")

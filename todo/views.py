@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 
+from accounts import forms as account_forms
 from . import models
 from . import forms
 
@@ -8,7 +9,13 @@ from . import forms
 
 
 def home(request):
-    return render(request, "todo/index.html", {"form": forms.NewListItemForm()})
+    return render(
+        request, "todo/index.html",
+        {
+            "form": forms.NewListItemForm(),
+            "loginform": account_forms.LoginForm(),
+        }
+    )
 
 
 def view_list(request, pk):
