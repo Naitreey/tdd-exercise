@@ -1,3 +1,5 @@
+from unittest.mock import Mock, patch
+
 import django
 from django.test import TestCase
 from django.core.exceptions import ValidationError
@@ -44,41 +46,21 @@ class LoginFormTest(TestCase):
         with self.assertRaises(ValueError):
             form.save()
 
-    def test_send_email_if_registered(self):
+    @patch("django.core.mail.send_mail")
+    def test_send_email_if_registered(self, send_mail):
         email = self.registered_email
-
-        # mock by monkeypatching
-        django.core.mail.send_mail = self.fake_send_mail
-
         form = forms.LoginForm(data={"email": email})
         form.save()
-
-        self.assertTrue(self.fake_send_mail_called)
+        (subject, message, from_email, recipient_list, *rest), kwargs = \
+            send_mail.call_args
+        self.assertTrue(send_mail.called)
         self.assertEqual(
-            self.fake_send_mail_from_email,
+            from_email,
             django.conf.settings.LOGIN_SENDER_EMAIL,
         )
-        self.assertEqual(self.fake_send_mail_recipient_list[0], email)
-        self.assertEqual(
-            self.fake_send_mail_subject,
-            "Your login url to To-Do List site",
-        )
+        self.assertEqual(recipient_list[0], email)
+        self.assertEqual(subject, "Your login url to To-Do List site")
         self.assertRegex(
-            self.fake_send_mail_message,
+            message,
             "Click the following url to log in to To-Do list site:",
         )
-
-    def fake_send_mail(self, subject, message, from_email, recipient_list,
-                       fail_silently=False, auth_user=None, auth_password=None,
-                       connection=None, html_message=None):
-        self.fake_send_mail_called = True
-        self.fake_send_mail_subject = subject
-        self.fake_send_mail_message = message
-        self.fake_send_mail_from_email = from_email
-        self.fake_send_mail_recipient_list = recipient_list
-        self.fake_send_mail_fail_silently = fail_silently
-        self.fake_send_mail_auth_user = auth_user
-        self.fake_send_mail_auth_password = auth_password
-        self.fake_send_mail_connection = connection
-        self.fake_send_mail_html_message = html_message
-        return len(recipient_list)
