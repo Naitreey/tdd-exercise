@@ -1,7 +1,10 @@
-from django.shortcuts import render
+import http
+
+from django.shortcuts import render, redirect
 from django.views.generic import View, FormView
 from django.urls import reverse_lazy
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.auth import authenticate, login
 
 from todo import forms as todo_forms
 from . import forms
@@ -28,4 +31,17 @@ class LoginView(SuccessMessageMixin, FormView):
         return super().get_context_data(**kwargs)
 
 class LoginConfirmView(View):
-    pass
+
+    invalid_login_template_name = "accounts/login_invalid.html"
+
+    def get(self, request, uidb64, token):
+        user = authenticate(request, uidb64=uidb64, token=token)
+        if user is None:
+            return render(
+                request, 
+                self.invalid_login_template_name, 
+                status=http.HTTPStatus.NOT_FOUND.value,
+            )
+        else:
+            login(request, user)
+            return redirect("home")

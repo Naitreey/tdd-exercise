@@ -5,12 +5,30 @@ from todo import forms as todo_forms
 from .. import models, forms
 
 
-class LoginViewTest(TestCase):
+class BaseAccountViewTest(TestCase):
 
     email = "abc@test.com"
 
     def setUp(self):
-        models.User.objects.create_user(email=self.email)
+        user = models.User.objects.create_user(email=self.email)
+        self.uidb64 = user.uidb64
+        self.token = user.make_auth_token()
+
+    def login(self, email, follow=False):
+        return self.client.post(
+            "/accounts/login/",
+            data={"email": email},
+            follow=follow,
+        )
+
+    def login_confirm(self, follow=False):
+        return self.client.get(
+            f"/accounts/login/{self.uidb64.decode()}/{self.token}/",
+            follow=follow,
+        )
+
+
+class LoginViewTest(BaseAccountViewTest):
 
     def test_homepage_has_loginform_if_not_logged_in(self):
         response = self.client.get("/")
@@ -44,9 +62,44 @@ class LoginViewTest(TestCase):
         response = self.login(email="")
         self.assertContains(response, "Email can not be empty")
 
-    def login(self, email, follow=False):
-        return self.client.post(
-            "/accounts/login/",
-            data={"email": email},
-            follow=follow,
+
+class LoginConfirmViewTest(BaseAccountViewTest):
+
+    def test_redirect_to_homepage_if_logged_in(self):
+        response = self.login_confirm()
+        self.assertRedirects(response, "/")
+
+    def test_navbar_login_status_if_logged_in(self):
+        response = self.login_confirm(follow=True)
+        self.assertContains(
+            response,
+            f"You have logged in as {self.email}.",
         )
+
+    def test_invalid_credentials_can_not_login(self):
+        response = self.client.get("/accounts/login/sef/sef/")
+        self.assertContains(
+            response,
+            "Your login link is invalid.",
+            status_code=404,
+        )
+
+    def test_a_url_can_be_used_only_once(self):
+        response = self.login_confirm()
+        response = self.login_confirm()
+        self.assertContains(
+            response,
+            "Your login link is invalid.",
+            status_code=404,
+        )
+
+
+class LogoutViewTest(BaseAccountViewTest):
+
+    def test_homepage_has_logout_form_if_logged_in(self):
+        response = self.login_confirm(follow=True)
+        self.assertIsInstance(
+            response.context['logoutform'],
+            forms.LogoutForm,
+        )
+
