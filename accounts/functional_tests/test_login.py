@@ -16,7 +16,7 @@ class LoginTest(EmptyInputTestMixin, ToDoListTest):
 
     def test_user_can_login(self):
         login_form_selector = "#login-form"
-        user_tip = "#nav p.tip"
+        user_tip = "#nav .tip"
         test_email = self.registered_email
 
         # Spock visited homepage again
@@ -77,24 +77,36 @@ class LoginTest(EmptyInputTestMixin, ToDoListTest):
         self.wait_for_fn(
             lambda: self.assertEqual(
                 self.browser.current_url,
-                self.live_server_url,
+                f"{self.live_server_url}/",
             )
         )
 
         # the page told him he had logged in.
-        self.asesrtEqual(
+        self.assertEqual(
             self.wait_for_elem(user_tip).text,
             f"You have logged in as {test_email}.",
         )
 
         # and login form is now gone.
         with self.assertRaisesRegex(
-                WebDriverException, "element not found") as cm:
+                WebDriverException, "no such element") as cm:
             self.find_element(login_form_selector)
 
         # there is a button to logout
-        self.assertEqual(self.find_element("#logout").text, "Log out")
+        logout_btn = self.find_element("#logout-form button")
+        self.assertEqual(logout_btn.text, "Log Out")
 
+        # he clicked button to logout
+        logout_btn.click()
+
+        # he now logged out, and has been redirected to homepage with login
+        self.wait_for_fn(
+            lambda: self.assertEqual(
+                self.find_element("#nav button").text,
+                "Log In",
+            )
+        )
+        
         # satisfied, Spock returned to Vulcan.
 
     def get_homepage(self):

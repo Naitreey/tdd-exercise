@@ -5,6 +5,7 @@ from django.views.generic import View, FormView
 from django.urls import reverse_lazy
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import authenticate, login
+from django.contrib.auth import views as auth_views
 
 from todo import forms as todo_forms
 from . import forms
@@ -30,6 +31,7 @@ class LoginView(SuccessMessageMixin, FormView):
                 = todo_forms.NewListItemForm(), kwargs['form']
         return super().get_context_data(**kwargs)
 
+
 class LoginConfirmView(View):
 
     invalid_login_template_name = "accounts/login_invalid.html"
@@ -45,3 +47,8 @@ class LoginConfirmView(View):
         else:
             login(request, user)
             return redirect("home")
+
+
+class LogoutView(auth_views.LogoutView):
+
+    next_page = "home"

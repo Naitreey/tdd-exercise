@@ -47,6 +47,9 @@ class User(PermissionsMixin, AbstractBaseUser):
         verbose_name = "User account"
         verbose_name_plural = "User accounts"
 
+    def __str__(self):
+        return self.email
+
     @property
     def is_staff(self):
         return self.is_superuser

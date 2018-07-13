@@ -96,10 +96,14 @@ class LoginConfirmViewTest(BaseAccountViewTest):
 
 class LogoutViewTest(BaseAccountViewTest):
 
-    def test_homepage_has_logout_form_if_logged_in(self):
-        response = self.login_confirm(follow=True)
-        self.assertIsInstance(
-            response.context['logoutform'],
-            forms.LogoutForm,
-        )
+    def test_can_logout_when_logged_in(self):
+        self.login_confirm()
+        response = self.logout(follow=True)
+        self.assertContains(response, "Log In")
 
+    def test_can_logout_when_not_logged_in(self):
+        response = self.logout(follow=True)
+        self.assertContains(response, "Log In")
+
+    def logout(self, follow=False):
+        return self.client.post("/accounts/logout/", follow=follow)
