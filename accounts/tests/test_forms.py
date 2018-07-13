@@ -64,4 +64,4 @@ class LoginFormTest(TestCase):
             "Click the following url to log in to To-Do list site:",
             message,
         )
-        self.assertRegex(message, r"http://.*/")
+        self.assertRegex(message, r"http://.*/accounts/login/.*/.*/")
