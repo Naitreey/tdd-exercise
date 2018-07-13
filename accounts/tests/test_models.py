@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.contrib.auth.models import update_last_login
 from django.core.exceptions import ValidationError
 
 from .. import models
@@ -26,9 +25,7 @@ class UserModelTest(TestCase):
 
     def test_can_get_user_by_uidb64(self):
         user = models.User.objects.create_user(email=self.test_email)
-        user2 = models.User.objects.get_by_uidb64(
-            urlsafe_base64_encode(force_bytes(user.pk))
-        )
+        user2 = models.User.objects.get_by_uidb64(user.uidb64)
         self.assertEqual(user, user2)
 
     def test_can_not_has_empty_email(self):
@@ -47,3 +44,10 @@ class UserModelTest(TestCase):
         user = models.User(email=self.test_email)
         user.full_clean() # should not raise ValidationError
         user.save()
+
+    def test_user_auth_token_different_each_time(self):
+        user = models.User.objects.create_user(email=self.test_email)
+        token1 = user.make_auth_token()
+        update_last_login(None, user)
+        token2 = user.make_auth_token()
+        self.assertNotEqual(token1, token2)

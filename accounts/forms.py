@@ -48,8 +48,8 @@ class LoginForm(forms.Form):
         login_url = reverse(
             "accounts:login-confirm",
             kwargs={
-                "uidb64": urlsafe_base64_encode(force_bytes(user.pk)).decode(),
-                "token": default_token_generator.make_token(user),
+                "uidb64": user.uidb64.decode(),
+                "token": user.make_auth_token(),
             }
         )
         subject = loader.render_to_string(subject_template_name).strip()

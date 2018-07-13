@@ -1,13 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 
 
 class UserManager(BaseUserManager):
 
     def get_by_uidb64(self, uidb64):
-        uid = urlsafe_base64_decode(uidb64)
+        # urlsafe_base64_decode() decodes to bytestring
+        uid = urlsafe_base64_decode(uidb64).decode()
         return self.get(pk=uid)
 
     def create_user(self, email, **extra_fields):
@@ -47,3 +50,10 @@ class User(PermissionsMixin, AbstractBaseUser):
     @property
     def is_staff(self):
         return self.is_superuser
+
+    @property
+    def uidb64(self):
+        return urlsafe_base64_encode(force_bytes(self.pk))
+
+    def make_auth_token(self):
+        return default_token_generator.make_token(self)
