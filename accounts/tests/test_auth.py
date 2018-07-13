@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.auth import authenticate
 
 from .. import models
 from ..auth.backends import TokenBackend
@@ -41,3 +42,28 @@ class TokenBackendTest(TestCase):
                 token="",
             )
         )
+
+
+class AuthTest(TestCase):
+
+    registered_email = "test@gmail.com"
+
+    def setUp(self):
+        self.user = models.User.objects.create_user(
+            email=self.registered_email
+        )
+
+    def test_can_authenticate_registered_user(self):
+        user = authenticate(
+            uidb64=self.user.uidb64,
+            token=self.user.make_auth_token(),
+        )
+        self.assertEqual(user, self.user)
+
+    def test_can_not_authenticate_dummy_credentials(self):
+        user = authenticate(uidb64="", token="")
+        self.assertIsNone(user)
+
+    def test_can_not_authenticate_without_credentials(self):
+        user = authenticate()
+        self.assertIsNone(user)

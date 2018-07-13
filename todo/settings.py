@@ -106,7 +106,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # User authentication
+
 AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = [
+    "accounts.auth.backends.TokenBackend",
+]
 
 
 # Internationalization
