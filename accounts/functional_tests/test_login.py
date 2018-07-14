@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 
 from todo.functional_tests.base import EmptyInputTestMixin, ToDoListTest
 
-class LoginTest(EmptyInputTestMixin, ToDoListTest):
+class LoginTest(ToDoListTest):
 
     registered_email = "test@test.test"
 
