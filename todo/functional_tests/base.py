@@ -4,13 +4,19 @@ Base test cases.
 import time
 import os
 from unittest import skip
+from importlib import import_module
+from urllib.parse import urljoin
 
 import numpy as np
 
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
 
+from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.contrib.auth import (SESSION_KEY, BACKEND_SESSION_KEY,
+                                 HASH_SESSION_KEY, get_user_model)
 
 from todo.utils.test import get_browser_driver
 
@@ -57,13 +63,13 @@ class BaseBrowserTest(StaticLiveServerTestCase):
         else:
             raise exc
 
-    def wait_for(self, selector):
+    def wait_for(self, value, by=By.CSS_SELECTOR):
         return self.wait_for_fn(
-            lambda: self.find_element(selector)
+            lambda: self.find_element(value, by=by)
         )
 
-    def find_element(self, selector):
-        return self.browser.find_element_by_css_selector(selector)
+    def find_element(self, value, by=By.CSS_SELECTOR):
+        return self.browser.find_element(by, value)
 
     wait_for_elem = wait_for
 
@@ -130,3 +136,21 @@ class EmptyInputTestMixin:
         # he then input something as todo entry
         self.input_new_todo_item("something else")
         self.check_todo_list(["something", "something else"])
+
+
+class SessionTestMixin:
+
+    def create_authed_session(self, email):
+        user = get_user_model().objects.get_by_natural_key(email)
+        engine = import_module(settings.SESSION_ENGINE)
+        session = engine.SessionStore()
+        session[SESSION_KEY] = user.pk
+        session[BACKEND_SESSION_KEY] = settings.AUTHENTICATION_BACKENDS[0]
+        session[HASH_SESSION_KEY] = user.get_session_auth_hash()
+        session.save()
+        self.browser.get(urljoin(self.live_server_url, "/sefsef/"))
+        self.browser.add_cookie({
+            "name": settings.SESSION_COOKIE_NAME,
+            "value": session.session_key,
+            "path": "/",
+        })
