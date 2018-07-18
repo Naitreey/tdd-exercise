@@ -52,6 +52,10 @@ def create_list(request):
         if form.errors:
             return render(request, "todo/index.html", {"form": form})
         else:
-            list = models.List.objects.create()
+            list = models.List.objects.create(
+                user=request.user if request.user.is_authenticated else None
+            )
             form.save(list=list)
             return redirect(list)
+    elif request.method == "GET":
+        return render(request, "todo/lists.html")

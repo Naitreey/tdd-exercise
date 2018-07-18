@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.conf import settings
 
 
 class List(models.Model):
@@ -12,15 +13,30 @@ class List(models.Model):
         help_text="When it's created",
     )
 
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="List's owner.",
+        on_delete=models.CASCADE,
+        related_name="lists",
+    )
+
     class Meta:
         verbose_name = "To-Do List"
         verbose_name_plural = f"{verbose_name}s"
 
     def __str__(self):
-        return f"{self.create_time}"
+        return self.name
 
     def get_absolute_url(self):
         return reverse("view-list", kwargs={"pk": self.pk})
+
+    @property
+    def name(self):
+        entry = self.entries.first()
+        return "" if entry is None else entry.content
 
 
 class Item(models.Model):

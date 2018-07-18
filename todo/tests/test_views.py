@@ -7,6 +7,7 @@ from django.urls import resolve
 from django.http.request import HttpRequest
 from django.template import loader
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 
 from .. import views, models, forms
 
@@ -168,3 +169,45 @@ class NewListTest(TestCase):
             data={"content": ""}
         )
         self.assertContains(response, "To-Do entry can not be empty.")
+
+    def test_new_list_belongs_to_user_if_logged_in(self):
+        email = "test@gmail.com"
+        content = "new item"
+        user = get_user_model().objects.create_user(email=email)
+        self.client.force_login(user)
+        response = self.client.post(
+            self.new_list_url,
+            data={"content": content}
+        )
+        self.assertEqual(
+            user.lists.first().entries.first().content,
+            content,
+        )
+
+    def test_new_list_belongs_to_no_one_if_not_logged_in(self):
+        content = "new item"
+        response = self.client.post(
+            self.new_list_url,
+            data={"content": content}
+        )
+        self.assertIsNone(models.List.objects.last().user)
+
+
+class ListsViewTest(TestCase):
+
+    lists_url = "/lists/"
+
+    def setUp(self):
+        pass
+        #email = "test@gmail.com"
+        #content1 = "sefsef sef sef"
+        #content2 = "ee sefff ffee e"
+        #user = get_user_model().objects.create_user(email)
+        #list1 = models.List.objects.create(user=user)
+        #list2 = models.List.objects.create(user=user)
+        #models.Item.objects.create(content=content1, list=list1)
+        #models.Item.objects.create(content=content2, list=list2)
+
+    def test_template_used(self):
+        response = self.client.get("/lists/")
+        self.assertTemplateUsed(response, "todo/lists.html")

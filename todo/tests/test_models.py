@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.contrib.auth import get_user_model
 
 from .. import models
 
@@ -66,3 +67,24 @@ class ListModelTest(TestCase):
             todo_list.get_absolute_url(),
             f"/lists/{todo_list.pk}/"
         )
+
+    def test_list_can_belong_to_user(self):
+        user = get_user_model()._default_manager.create_user(
+            email="test@gmail.com"
+        )
+        list = models.List.objects.create(user=user)
+        self.assertEqual(list.user, user)
+
+    def test_list_can_belong_to_no_one(self):
+        list = models.List.objects.create()
+        self.assertIsNone(list.user)
+
+    def test_list_name(self):
+        content = "kk"
+        list = models.List.objects.create()
+        models.Item.objects.create(content=content, list=list)
+        self.assertEqual(list.name, content)
+
+    def test_empty_list_name(self):
+        list = models.List.objects.create()
+        self.assertEqual(list.name, "")
