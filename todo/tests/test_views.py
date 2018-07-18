@@ -47,6 +47,7 @@ class ListViewTest(TestCase):
         response = self.client.get(f"/lists/{todo_list.pk}/")
         self.assertIn("items", response.context)
         self.assertIsInstance(response.context['form'], forms.ExistingListItemForm)
+        self.assertIsInstance(response.context['list'], models.List)
 
     def test_list_only_display_belonging_items(self):
         todo_list = self.todolist

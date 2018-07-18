@@ -2,7 +2,27 @@
 
 {% block title%}Start a New To-Do List{% endblock title%}
 
-{% block formaction %}{% url 'lists' %}{% endblock formaction %}
+{% block uppercontent %}
+<form class="form"
+      action="{% block formaction %}{% url 'lists' %}{% endblock formaction %}"
+      method="POST"
+      enctype="application/x-www-form-urlencoded"
+      accept-charset="utf-8"
+      novalidate>
+    {% csrf_token %}
+    <div class="col-sm-13">
+        <input class="form-control form-control-lg {% if form.content.errors %}is-invalid{% endif %}"
+               id="{{ form.content.id_for_label }}"
+               name="{{ form.content.html_name }}"
+               type="text"
+               placeholder="Enter a to-do item" />
+        <div id="{{ form.content.id_for_label }}-error"
+             class="invalid-feedback">
+            {{ form.content.errors|join:", " }}
+        </div>
+    </div>
+</form>
+{% endblock uppercontent %}
 <!-- 
 vim:ft=htmldjango
 -->

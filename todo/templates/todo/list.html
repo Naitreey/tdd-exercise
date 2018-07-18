@@ -1,8 +1,10 @@
-{% extends "todo/base.html" %}
+{% extends "todo/index.html" %}
 
 {% block title%}Your To-Do List{% endblock title%}
 
-{% block todolist %}
+{% block formaction %}{% url 'view-list' pk=list.pk %}{% endblock formaction %}
+
+{% block lowercontent %}
 <div class="row justify-content-center">
     <div class="col-sm-6">
         <ul class="list-group list-group-flush" id="todo-list">
@@ -14,7 +16,7 @@
         </ul>
     </div>
 </div>
-{% endblock todolist %}
+{% endblock lowercontent %}
 <!-- 
 vim:ft=htmldjango
 -->

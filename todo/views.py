@@ -26,6 +26,7 @@ def view_list(request, pk):
             return render(
                 request, "todo/list.html",
                 {
+                    "list": list,
                     "items": list.entries.order_by("create_time"),
                     "form": form,
                 }
@@ -38,6 +39,7 @@ def view_list(request, pk):
             request,
             "todo/list.html",
             context={
+                "list": list,
                 "items": list.entries.order_by("create_time"),
                 "form": forms.ExistingListItemForm(list=list),
             },

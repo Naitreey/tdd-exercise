@@ -67,35 +67,15 @@
                 {% endif %}
             </nav>
             {% endblock nav %}
-            {% block input %}
             <div class="row justify-content-center">
                 <div class="col-sm-5 jumbotron">
                     <div class="text-center">
-                        <h1>{% block title %}To-Do list{% endblock title %}</h1>
-                        <form class="form"
-                              action="{% block formaction %}{% endblock formaction %}"
-                              method="POST"
-                              enctype="application/x-www-form-urlencoded"
-                              accept-charset="utf-8"
-                              novalidate>
-                            {% csrf_token %}
-                            <div class="col-sm-13">
-                                <input class="form-control form-control-lg {% if form.content.errors %}is-invalid{% endif %}"
-                                       id="{{ form.content.id_for_label }}"
-                                       name="{{ form.content.html_name }}"
-                                       type="text"
-                                       placeholder="Enter a to-do item" />
-                                <div id="{{ form.content.id_for_label }}-error"
-                                     class="invalid-feedback">
-                                    {{ form.content.errors|join:", " }}
-                                </div>
-                            </div>
-                        </form>
+                        <h1>{% block title %}{% endblock title %}</h1>
+                        {% block uppercontent %}{% endblock uppercontent %}
                     </div>
                 </div>
             </div>
-            {% endblock input %}
-            {% block todolist %}{% endblock todolist %}
+            {% block lowercontent %}{% endblock lowercontent %}
         </div>
         {% endblock body %}
         <!-- Optional JavaScript -->
