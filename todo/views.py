@@ -46,7 +46,7 @@ def view_list(request, pk):
         )
 
 
-def create_list(request):
+def lists_view(request):
     if request.method == "POST":
         form = forms.NewListItemForm(data=request.POST)
         if form.errors:
