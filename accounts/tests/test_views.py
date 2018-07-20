@@ -47,7 +47,7 @@ class LoginViewTest(BaseAccountViewTest):
         response = self.login(email="test@test.com")
         self.assertIsInstance(
             response.context['form'],
-            todo_forms.NewListItemForm,
+            todo_forms.NewListForm,
         )
         self.assertIsInstance(
             response.context['loginform'],

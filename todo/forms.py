@@ -7,23 +7,21 @@ from . import models
 EMPTY_CONTENT_ERROR = "To-Do entry can not be empty."
 
 
-class NewListItemForm(forms.ModelForm):
+class NewListForm(forms.Form):
 
-    class Meta:
-        model = models.Item
-        fields = ["content"]
-        error_messages = {
-            "content": {
-                "required": EMPTY_CONTENT_ERROR,
-            }
+    content = models.Item._meta.get_field("content").formfield(
+        error_messages={
+            "required": EMPTY_CONTENT_ERROR
         }
+    )
 
-    def save(self, list):
-        instance = super().save(commit=False)
-        instance.list = list
-        instance.save()
-        self.save_m2m()
-
+    def save(self, user=None):
+        if not self.is_valid():
+            raise ValueError("the data didn't validate")
+        return models.List.objects.create_new(
+            first_item=self.cleaned_data['content'],
+            user=user
+        )
 
 class ExistingListItemForm(forms.ModelForm):
 

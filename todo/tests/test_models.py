@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.contrib.auth import get_user_model
 
 from .. import models
 
@@ -66,3 +67,41 @@ class ListModelTest(TestCase):
             todo_list.get_absolute_url(),
             f"/lists/{todo_list.pk}/"
         )
+
+    def test_list_can_belongs_to_no_one(self):
+        list = models.List.objects.create()
+        self.assertIsNone(list.user)
+
+    def test_list_can_belongs_to_an_user(self):
+        user = get_user_model().objects.create_user(email="test@gmail.com")
+        list = models.List.objects.create(user=user)
+        self.assertEqual(list.user, user)
+
+    def test_list_name_is_empty_string_if_no_entry(self):
+        list = models.List.objects.create()
+        self.assertEqual(list.name, "")
+
+    def test_list_name_equals_to_first_item_content(self):
+        list = models.List.objects.create()
+        models.Item.objects.create(content="sef", list=list)
+        self.assertEqual(list.name, "sef")
+
+    def test_can_create_new_list_with_first_item(self):
+        content = "sef"
+        list = models.List.objects.create_new(first_item=content)
+        self.assertEqual(list.entries.get().content, content)
+
+    def test_can_create_new_list_with_user(self):
+        content = "sef"
+        user = get_user_model().objects.create_user(email="test@gmail.com")
+        list = models.List.objects.create_new(
+            first_item=content, user=user
+        )
+        self.assertEqual(user.lists.get(), list)
+
+    def test_can_create_new_list_without_user(self):
+        content = "sef"
+        list = models.List.objects.create_new(
+            first_item=content, user=None,
+        )
+        self.assertIsNone(list.user)

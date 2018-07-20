@@ -37,7 +37,7 @@ class MyListsTest(SessionTestMixin, ToDoListTest):
         )
         # she started another list
         self.browser.get(self.live_server_url)
-        content3 = "sef sef esf "
+        content3 = "sef sef esf"
         content4 = "sefse es esf es"
         self.input_new_todo_item(content3)
         self.input_new_todo_item(content4)

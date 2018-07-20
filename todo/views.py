@@ -12,7 +12,7 @@ def home(request):
     return render(
         request, "todo/index.html",
         {
-            "form": forms.NewListItemForm(),
+            "form": forms.NewListForm(),
             "loginform": account_forms.LoginForm(),
         }
     )
@@ -46,12 +46,16 @@ def view_list(request, pk):
         )
 
 
-def create_list(request):
+def lists_view(request):
     if request.method == "POST":
-        form = forms.NewListItemForm(data=request.POST)
-        if form.errors:
-            return render(request, "todo/index.html", {"form": form})
+        form = forms.NewListForm(data=request.POST)
+        if form.is_valid():
+            list_ = form.save(
+                user=request.user if request.user.is_authenticated else None
+            )
+            return redirect(list_)
         else:
-            list = models.List.objects.create()
-            form.save(list=list)
-            return redirect(list)
+            return render(request, "todo/index.html", {"form": form})
+    elif request.method == "GET":
+        if request.user.is_authenticated:
+            return render(request, "todo/lists.html")

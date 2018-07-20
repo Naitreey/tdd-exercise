@@ -28,7 +28,7 @@ class LoginView(SuccessMessageMixin, FormView):
     def get_context_data(self, **kwargs):
         if "form" in kwargs:
             kwargs['form'], kwargs['loginform'] \
-                = todo_forms.NewListItemForm(), kwargs['form']
+                = todo_forms.NewListForm(), kwargs['form']
         return super().get_context_data(**kwargs)
 
 

@@ -1,5 +1,6 @@
 from datetime import timedelta
 from unittest import skip
+from unittest.mock import patch, Mock
 import html
 
 from django.test import TestCase
@@ -7,6 +8,8 @@ from django.urls import resolve
 from django.http.request import HttpRequest
 from django.template import loader
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 
 from .. import views, models, forms
 
@@ -24,7 +27,7 @@ class HomePageTest(TestCase):
 
     def test_homepage_has_form(self):
         response = self.client.get("/")
-        self.assertIsInstance(response.context['form'], forms.NewListItemForm)
+        self.assertIsInstance(response.context['form'], forms.NewListForm)
 
     def test_get_not_save_item(self):
         self.client.get("/")
@@ -114,57 +117,69 @@ class InitialListTest(TestCase):
         self.assertEqual(models.List.objects.count(), 1)
 
 
-class NewListTest(TestCase):
+@patch("todo.forms.NewListForm")
+class ListsViewTest(TestCase):
 
-    new_list_url = "/lists/"
+    @patch("todo.views.render")
+    def test_post_empty_item_not_saving(self, mock_render, MockForm):
+        form = MockForm.return_value
+        form.is_valid.return_value = False
+        request = self.build_request("")
+        response = views.lists_view(request)
+        form.save.assert_not_called()
 
-    def test_can_post_new_item(self):
-        response = self.client.post(
-            self.new_list_url,
-            data={"content": "new item"}
+    @patch("todo.views.render")
+    def test_post_empty_item_shows_homepage(self, mock_render, MockForm):
+        form = MockForm.return_value
+        form.is_valid.return_value = False
+        request = self.build_request("")
+        response = views.lists_view(request)
+        mock_render.assert_called_once_with(
+            request, "todo/index.html", {"form": form}
         )
-        list = models.List.objects.last()
-        self.assertRedirects(response, f"/lists/{list.pk}/")
 
-    def test_new_lists_have_different_urls(self):
-        response1 = self.client.post(
-            self.new_list_url,
-            data={"content": "new item"}
-        )
-        response2 = self.client.post(
-            self.new_list_url,
-            data={"content": "new item"}
-        )
-        self.assertNotEqual(response1['Location'], response2['Location'])
+    @patch("todo.views.redirect")
+    def test_new_list_saved_with_user_if_logged_in(self, mock_redirect,
+                                                   MockForm):
+        user = get_user_model().objects.create_user(email="test@gmail.com")
+        self.client.force_login(user)
+        # interaction points
+        # form, list model, request data
+        form = MockForm.return_value
+        form.is_valid.return_value = True
+        request = self.build_request("sersef", user=user)
+        views.lists_view(request)
+        form.save.assert_called_once_with(user=user)
 
-    def test_can_save_new_item(self):
-        text = "new item"
-        response = self.client.post(
-            self.new_list_url,
-            data={"content": text}
-        )
-        self.assertEqual(models.Item.objects.count(), 1)
-        self.assertEqual(models.Item.objects.first().content, text)
+    @patch("todo.views.redirect")
+    def test_new_list_saved_with_no_one_if_not_logged_in(self, mock_redirect,
+                                                         MockForm):
+        form = MockForm.return_value
+        form.is_valid.return_value = True
+        views.lists_view(self.build_request("sef"))
+        form.save.assert_called_once_with(user=None)
 
-    def test_can_not_post_empty_item(self):
-        response = self.client.post(
-            self.new_list_url,
-            data={"content": ""}
-        )
-        self.assertEqual(models.Item.objects.count(), 0)
+    @patch("todo.views.redirect")
+    def test_post_valid_item_redirect_to_the_list(self, mock_render, MockForm):
+        form = MockForm.return_value
+        form.is_valid.return_value = True
+        views.lists_view(self.build_request("sef"))
+        mock_render.assert_called_once_with(form.save.return_value)
 
-    def test_post_empty_item_returns_homepage(self):
-        response = self.client.post(
-            self.new_list_url,
-            data={"content": ""}
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "todo/index.html")
-        self.assertIsInstance(response.context['form'], forms.NewListItemForm)
+    @patch("todo.views.render")
+    def test_get_user_lists(self, mock_render, MockForm):
+        user = Mock()
+        user.is_authenticated = True
+        request = self.build_request(user=user)
+        response = views.lists_view(request)
+        mock_render.assert_called_once_with(request, "todo/lists.html")
 
-    def test_post_empty_item_shows_invalidation(self):
-        response = self.client.post(
-            self.new_list_url,
-            data={"content": ""}
-        )
-        self.assertContains(response, "To-Do entry can not be empty.")
+    def build_request(self, content=None, user=None):
+        request = HttpRequest()
+        if content is not None:
+            request.POST.update({"content": content})
+            request.method = "POST"
+        else:
+            request.method = "GET"
+        request.user = user or AnonymousUser()
+        return request

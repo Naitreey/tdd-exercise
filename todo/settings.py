@@ -141,3 +141,63 @@ TEST_BROWSER_DRIVER = "selenium.webdriver.Chrome"
 # Email
 
 LOGIN_SENDER_EMAIL = "zhuyide@jiandan100.cn"
+
+# Logging
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{levelname:<8} {asctime}] {name} {module}:{lineno}: {message}",
+            "style": "{",
+        },
+        # default `django.server` formatter
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[{server_time}] {message}',
+            'style': '{',
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "NOTSET",
+            "formatter": "verbose",
+        },
+        "null": {
+            "class": "logging.NullHandler",
+        },
+        # default `django.server` handler
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
+        },
+    },
+    "loggers": {
+        # re-configure `django` top-level logger to propagate
+        # to root logger. do not set level or any handlers.
+        "django": {
+            "level": "NOTSET",
+            "propagate": True,
+        },
+        # re-configure `django.server` logger using default settings
+        "django.server": {
+            "handlers": ["django.server"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # disable pepper logging
+        "pepper": {
+            "handlers": ["null"],
+            "propagate": False,
+        }
+    },
+    "root": {
+        # use level rather than RequireDebugTrue/False filter
+        # to pre-emptively skip logging calls
+        "level": "INFO",
+        "handlers": ["console"],
+    }
+}

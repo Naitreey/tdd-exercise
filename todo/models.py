@@ -1,5 +1,19 @@
 from django.db import models
 from django.urls import reverse
+from django.conf import settings
+from django.db.models.manager import Manager
+
+
+class ListManager(Manager):
+
+    def create_new(self, first_item, user=None):
+        instance = self.model(user=user)
+        instance.save()
+        Item.objects.create(
+            content=first_item,
+            list=instance,
+        )
+        return instance
 
 
 class List(models.Model):
@@ -11,6 +25,16 @@ class List(models.Model):
         blank=False,
         help_text="When it's created",
     )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        help_text="List's owner.",
+        related_name="lists",
+    )
+
+    objects = ListManager()
 
     class Meta:
         verbose_name = "To-Do List"
@@ -21,6 +45,11 @@ class List(models.Model):
 
     def get_absolute_url(self):
         return reverse("view-list", kwargs={"pk": self.pk})
+
+    @property
+    def name(self):
+        entry = self.entries.first()
+        return entry.content if entry else ""
 
 
 class Item(models.Model):

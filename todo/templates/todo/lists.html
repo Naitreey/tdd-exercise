@@ -1,0 +1,20 @@
+{% extends 'todo/base.html' %}
+{% block title %}My Lists{% endblock title %}
+{% block lowercontent %}
+<div class="row justify-content-center">
+    <div class="col-sm-6">
+        <div class="text-center">
+            <ul class="list-group">
+            {% for list in user.lists.all %}
+            <li class="list-group-item">
+                <a href="{{ list.get_absolute_url }}">{{ list.name }}</a>
+            </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock lowercontent %}
+{% comment %}
+vim:ft=htmldjango
+{% endcomment %}
